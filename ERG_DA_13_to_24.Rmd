@@ -1,0 +1,72 @@
+---
+title: "ERG"
+output: html_document
+date: "2024-05-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## ERG - Dark Adapted Step 13-24
+
+```{r}
+#Read data from the exported excel file.
+setwd("C:/Users/fsheini/OneDrive - UAB - The University of Alabama at Birmingham/Desktop/ERG_Data/Mouse_4_053024")
+step17_DA <- read.csv("F.csv")
+```
+
+```{r}
+#Delete last two columns
+step17_DA_df = subset(step17_DA, select = -c(X..Plot.1,X..Plot.1.1) )
+
+```
+
+```{r}
+#Find minimum and maximum amplitudes
+max_amp <- max(step17_DA_df$X..Plot.0.1)
+vals_lower_than_320s <- subset(step17_DA_df, step17_DA_df[, "X..Plot.0"] < 320)
+min_amp <- min(vals_lower_than_320s$X..Plot.0.1)
+# I took this out because it was using lower values at timepoints that were not the a-wave = min_amp <- min(step17_DA_df$X..Plot.0.1)
+```
+
+```{r}
+search_column <- "X..Plot.0"
+search_value <- 250
+
+# Subset rows where search_column matches search_value
+result <- subset(step17_DA_df, step17_DA_df[, search_column] == search_value)
+average250 <- mean(result$X..Plot.0.1)
+```
+
+```{r}
+b_wave_amp <- max_amp + (abs(min_amp)) 
+
+if (average250 >= 0) {
+  a_wave_amp= (average250 + abs(min_amp))
+} else {
+  a_wave_amp =(abs(min_amp) - abs(average250))
+}
+```
+
+```{r}
+search_column_imptime <- "X..Plot.0.1"
+search_value_imptime_b <- max_amp
+
+# Subset rows where search_column matches search_value
+result_imptime_b <- subset(step17_DA_df, step17_DA_df[, search_column_imptime] == search_value_imptime_b)
+b_imptime <- (mean(result_imptime_b$X..Plot.0)) - 250
+
+###A wave implicit time
+
+#search_column_imptime <- "X..Plot.0.1"
+search_value_imptime_a <- min_amp
+
+# Subset rows where search_column matches search_value
+result_imptime_a <- subset(step17_DA_df, step17_DA_df[, search_column_imptime] == search_value_imptime_a)
+a_imptime <- (mean(result_imptime_a$X..Plot.0)) - 250
+```
+
+```{r}
+final_results <- data.frame(step=c("step17_DA"),b_waveAmp=c(b_wave_amp),b_imp=c(b_imptime),a_waveAmp=c(a_wave_amp),a_imp=c(a_imptime))
+```

@@ -1,0 +1,182 @@
+---
+title: "ERG_Overall"
+author: "Fadeela"
+date: "2024-05-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## ERG Complete Function for all CSVs
+
+```{r}
+#functions
+DA_13to24_func <- function(file) {
+  step17_DA <- file
+  step17_DA_df = subset(step17_DA, select = -c(X..Plot.1,X..Plot.1.1) )
+  vals_lower_than_380s <- subset(step17_DA_df, step17_DA_df[, "X..Plot.0"] < 380)
+  max_amp <<- max(vals_lower_than_380s$X..Plot.0.1)
+  
+  vals_lower_than_320s <- subset(step17_DA_df, step17_DA_df[, "X..Plot.0"] < 320)
+  min_amp <<- min(vals_lower_than_320s$X..Plot.0.1)
+  
+  search_column <- "X..Plot.0"
+  search_value <- 250
+  
+  # Subset rows where search_column matches search_value
+  result <- subset(step17_DA_df, step17_DA_df[, search_column] == search_value)
+  average250 <- mean(result$X..Plot.0.1)
+  b_wave_amp <<- max_amp + (abs(min_amp)) 
+  
+  if (average250 >= 0) {
+    a_wave_amp <<- (average250 + abs(min_amp))
+  } else {
+    a_wave_amp <<- (abs(min_amp) - abs(average250))
+  }
+  search_column_imptime <- "X..Plot.0.1"
+  search_value_imptime_b <- max_amp
+  
+  # Subset rows where search_column matches search_value
+  result_imptime_b <- subset(step17_DA_df, step17_DA_df[, search_column_imptime] == search_value_imptime_b)
+  b_imptime <<- (mean(result_imptime_b$X..Plot.0)) - 250
+  
+  ###A wave implicit time
+  
+  #search_column_imptime <- "X..Plot.0.1"
+  search_value_imptime_a <- min_amp
+  
+  # Subset rows where search_column matches search_value
+  result_imptime_a <- subset(step17_DA_df, step17_DA_df[, search_column_imptime] == search_value_imptime_a)
+  a_imptime <<- (mean(result_imptime_a$X..Plot.0)) - 250
+}
+
+#test the bloody function
+
+DA_1to9_func <- function(file) {
+  step7_DA <- file
+  step7_DA_df = subset(step7_DA, select = -c(X..Plot.1,X..Plot.1.1) )
+  max_amp <<- max(step7_DA_df$X..Plot.0.1)
+  min_amp <<- min(step7_DA_df$X..Plot.0.1)
+  search_column <- "X..Plot.0"
+  search_value <- 250
+
+  # Subset rows where search_column matches search_value
+  result <- subset(step7_DA_df, step7_DA_df[, search_column] == search_value)
+  average250 <<- mean(result$X..Plot.0.1)
+  #Calculate b wave with avg250
+
+  if (average250 <= 0) {
+    b_wave_amp <<- max_amp + abs(average250)
+  } else {
+    b_wave_amp <<- max_amp - abs(average250)
+  }
+
+  # Calculate b wave implicit time
+  search_column_imptime <- "X..Plot.0.1"
+  search_value_imptime_b <- max_amp
+
+  # Subset rows where search_column matches search_value
+  result_imptime_b <- subset(step7_DA_df, step7_DA_df[, search_column_imptime] == search_value_imptime_b)
+  b_imptime <<- (mean(result_imptime_b$X..Plot.0)) - 250
+  a_wave_amp<<-0
+  a_imptime<<-0
+}
+
+LA_func <- function(file) {
+  step16_LA <- file
+  step16_LA_df = subset(step16_LA, select = -c(X..Plot.1,X..Plot.1.1) )
+  vals_lower_than_303s <- subset(step16_LA_df, step16_LA_df[, "X..Plot.0"] <= 303)
+  max_amp <<- max(vals_lower_than_303s$X..Plot.0.1)
+  vals_lower_than_310s <- subset(step16_LA_df, step16_LA_df[, "X..Plot.0"] < 310)
+  min_amp <<- min(vals_lower_than_310s$X..Plot.0.1)
+  search_column <- "X..Plot.0"
+  search_value <- 250
+
+  #Subset rows where search_column matches search_value
+  result <- subset(step16_LA_df, step16_LA_df[, search_column] == search_value)
+  average250 <<- mean(result$X..Plot.0.1)
+  b_wave_amp <<- max_amp + (abs(min_amp))
+
+  #Calculate a-wave amplitude
+  if (average250 >= 0) {
+    a_wave_amp <<- (average250 + abs(min_amp))
+  } else {
+    a_wave_amp <<- (abs(min_amp) - abs(average250))
+  }
+  search_column_imptime <- "X..Plot.0.1"
+  search_value_imptime_b <- max_amp
+
+  # Subset rows where search_column matches search_value
+  result_imptime_b <- subset(step16_LA_df, step16_LA_df[, search_column_imptime] ==   search_value_imptime_b)
+  b_imptime <<- (mean(result_imptime_b$X..Plot.0)) - 250
+
+  ###A wave implicit time
+  
+  #search_column_imptime <- "X..Plot.0.1"
+  search_value_imptime_a <- min_amp
+
+  # Subset rows where search_column matches search_value
+  result_imptime_a <- subset(step16_LA_df, step16_LA_df[, search_column_imptime] ==   search_value_imptime_a & step16_LA_df[,"X..Plot.0"]<320)
+  a_imptime <<- (mean(result_imptime_a$X..Plot.0)) - 250
+}
+
+```
+
+```{r}
+#Always remember to set x back to 0 after every run because the function it runs on the dataset depends on it.
+#Steps before you run the function:(Should probably put this in a README file)
+# 1. Check the Environment tab on the right to ensure x is 0.
+# 2. Change file path to where your folder of csv files is. Make sure they are in alphabetical order. I recommend using A,B,C... to name the files so that step1 is A, Step3 is B and so on and forth.
+# 3. Check the if conditions in the for loop to ensure they correspond to the order in which you performed your ERGs. x is the run number, that's why it starts from 0, so if you only performed steps 1,3,5,9, as opposed to steps 1,3,5,7,9, your condition for the first if condition will be x<=3 because that's where your first stage without a waves ends.
+# 4. When you are done, save the dataframe in a csv file by running the function below the for loop.(check the path you are storing the file in and update the name of the file for each run)
+# 5. Run the indicated code to empty the dataframe after every full run 
+```
+
+```{r}
+
+x <- 0
+folder_path <- "C:/Users/fsheini/OneDrive - UAB - The University of Alabama at Birmingham/Desktop/ERG_Data/Mouse_5_061224"
+for (file in list.files(folder_path, pattern = "*.csv", full.names = TRUE)) {
+  # Read the current CSV file
+  data <- read.csv(file)
+  
+  # Apply your function on the data frame
+  if (x <= 4) {
+  DA_1to9_func(data)
+  } else if (x>4 & x<=12) {
+    DA_13to24_func(data)
+  } else {
+    LA_func(data)
+  }
+  final_results <- rbind(final_results, list(x, b_wave_amp, b_imptime,a_wave_amp,a_imptime))
+  x <- x+1
+}
+
+#Export final dataset to csv that can be opened in Excel
+write.csv(final_results, "C:/Users/fsheini/OneDrive - UAB - The University of Alabama at Birmingham/Desktop/ERG_R_Output/Mouse5_061224.csv", row.names=FALSE)
+
+#Run this to empty dataframe before next run
+final_results <- data.frame(step=c("step_0"),b_waveAmp=c(0),b_imp=c(0),a_waveAmp=c(0),a_imp=c(0))
+
+```
+
+```{r}
+final_results <- data.frame(step=c("step_0"),b_waveAmp=c(0),b_imp=c(0),a_waveAmp=c(0),a_imp=c(0))
+
+#Trying out some things with dplyr
+final_results <- final_results %>% distinct()
+final_results <-  final_results %>% filter(!row_number() %in% c(1:23))
+ #Appending to dataframe
+#final_results <- rbind(final_results, list("step16_LA", b_wave_amp, b_imptime,a_wave_amp,a_imptime))
+
+#Creation of dataframe
+#final_results <- data.frame(step=c("step16_LA"),b_waveAmp=c(b_wave_amp),b_imp=c(b_imptime),a_waveAmp=c(a_wave_amp),a_imp=c(a_imptime))
+
+# If you are curious and want to know the order in which the code reads the files from the folder, just put your folder path in here and try it out!
+for (file in list.files(folder_path, pattern = "*.csv", full.names = TRUE))  {
+  print(file)
+}
+
+```

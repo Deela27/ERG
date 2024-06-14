@@ -1,0 +1,60 @@
+---
+title: "ERG"
+author: "Fadeela"
+date: "2024-05-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ERG Dark Adapted Step 1-11(9 and 11 optional because this only calculates b wave)
+
+```{r}
+#Read data from the exported excel file.
+setwd("C:/Users/fsheini/OneDrive - UAB - The University of Alabama at Birmingham/Desktop")
+step7_DA <- read.csv("Step7_3CH.csv")
+```
+
+```{r}
+step7_DA_df = subset(step7_DA, select = -c(X..Plot.1,X..Plot.1.1) )
+```
+
+```{r}
+max_amp <- max(step7_DA_df$X..Plot.0.1)
+min_amp <- min(step7_DA_df$X..Plot.0.1)
+```
+
+```{r}
+search_column <- "X..Plot.0"
+search_value <- 250
+
+# Subset rows where search_column matches search_value
+result <- subset(step7_DA_df, step7_DA_df[, search_column] == search_value)
+average250 <- mean(result$X..Plot.0.1)
+```
+
+```{r}
+#Calculate b wave with avg250
+
+if (average250 <= 0) {
+  b_wave_amp= max_amp + abs(average250)
+} else {
+  b_wave_amp = max_amp - abs(average250)
+}
+
+# Calculate b wave implicit time
+search_column_imptime <- "X..Plot.0.1"
+search_value_imptime_b <- max_amp
+
+# Subset rows where search_column matches search_value
+result_imptime_b <- subset(step7_DA_df, step7_DA_df[, search_column_imptime] == search_value_imptime_b)
+b_imptime <- (mean(result_imptime_b$X..Plot.0)) - 250
+
+```
+
+```{r}
+trial <- subset(final_results, final_results[,"a_imp"]==10 & final_results[,"b_imp"]<112)
+mouse2_final_results <- final_results
+```

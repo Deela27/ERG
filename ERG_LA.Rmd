@@ -1,0 +1,80 @@
+---
+title: "ERG"
+author: "Fadeela"
+date: "2024-05-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ERG Light Adapted Step 15-24
+
+```{r}
+#Read data from the exported excel file.
+setwd("C:/Users/fsheini/OneDrive - UAB - The University of Alabama at Birmingham/Desktop")
+step16_LA <- read.csv("Step16_13CH.csv")
+```
+
+```{r}
+#Delete last two columns
+step16_LA_df = subset(step16_LA, select = -c(X..Plot.1,X..Plot.1.1) )
+
+```
+
+```{r}
+#Find minimum and maximum amplitudes
+#Subset values and set cutoff to 350.
+vals_lower_than_350s <- subset(step16_LA_df, step16_LA_df[, "X..Plot.0"] <= 350)
+max_amp <- max(vals_lower_than_350s$X..Plot.0.1)
+
+#Here the minimum amplitude has to be only ones before a certain time point because of the photopic negative response that can be lower than the a-wave.
+# Subset values lower than that timepoint and then find the lowest from amongst those values there.
+vals_lower_than_310s <- subset(step16_LA_df, step16_LA_df[, "X..Plot.0"] < 310)
+min_amp <- min(vals_lower_than_310s$X..Plot.0.1)
+```
+
+```{r}
+search_column <- "X..Plot.0"
+search_value <- 250
+
+#Subset rows where search_column matches search_value
+result <- subset(step16_LA_df, step16_LA_df[, search_column] == search_value)
+average250 <- mean(result$X..Plot.0.1)
+```
+
+```{r}
+#Calculate b-wave amplitude
+b_wave_amp <- max_amp + (abs(min_amp))
+
+#Calculate a-wave amplitude
+if (average250 >= 0) {
+  a_wave_amp= (average250 + abs(min_amp))
+} else {
+  a_wave_amp =(abs(min_amp) - abs(average250))
+}
+```
+
+```{r}
+#Put column in variables
+search_column_imptime <- "X..Plot.0.1"
+search_value_imptime_b <- max_amp
+
+# Subset rows where search_column matches search_value
+result_imptime_b <- subset(step16_LA_df, step16_LA_df[, search_column_imptime] == search_value_imptime_b)
+b_imptime <- (mean(result_imptime_b$X..Plot.0)) - 250
+
+###A wave implicit time
+
+#search_column_imptime <- "X..Plot.0.1"
+search_value_imptime_a <- min_amp
+
+# Subset rows where search_column matches search_value
+result_imptime_a <- subset(step16_LA_df, step16_LA_df[, search_column_imptime] == search_value_imptime_a)
+a_imptime <- (mean(result_imptime_a$X..Plot.0)) - 250
+```
+
+```{r}
+final_results <- data.frame(step=c("step16_LA"),b_waveAmp=c(b_wave_amp),b_imp=c(b_imptime),a_waveAmp=c(a_wave_amp),a_imp=c(a_imptime))
+```

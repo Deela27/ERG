@@ -1,0 +1,115 @@
+---
+title: "ERG"
+author: "Fadeela"
+date: "2024-06-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## ERG- Custom Functions
+
+I created this to analyse data for results where the runs did not follow the usual pattern.
+
+This first one is to analyse the data for a mouse who woke up before I got to do the light adapted stage. I only have data for the Dark Adapted stage.
+
+```{r}
+#Functions
+DA_1to9_func <- function(file) {
+  step7_DA <- file
+  step7_DA_df = subset(step7_DA, select = -c(X..Plot.1,X..Plot.1.1) )
+  max_amp <<- max(step7_DA_df$X..Plot.0.1)
+  min_amp <<- min(step7_DA_df$X..Plot.0.1)
+  search_column <- "X..Plot.0"
+  search_value <- 250
+
+  # Subset rows where search_column matches search_value
+  result <- subset(step7_DA_df, step7_DA_df[, search_column] == search_value)
+  average250 <<- mean(result$X..Plot.0.1)
+  #Calculate b wave with avg250
+
+  if (average250 <= 0) {
+    b_wave_amp <<- max_amp + abs(average250)
+  } else {
+    b_wave_amp <<- max_amp - abs(average250)
+  }
+
+  # Calculate b wave implicit time
+  search_column_imptime <- "X..Plot.0.1"
+  search_value_imptime_b <- max_amp
+
+  # Subset rows where search_column matches search_value
+  result_imptime_b <- subset(step7_DA_df, step7_DA_df[, search_column_imptime] == search_value_imptime_b)
+  b_imptime <<- (mean(result_imptime_b$X..Plot.0)) - 250
+  a_wave_amp<<-0
+  a_imptime<<-0
+}
+
+
+
+
+DA_13to24_func <- function(file) {
+  step17_DA <- file
+  step17_DA_df = subset(step17_DA, select = -c(X..Plot.1,X..Plot.1.1) )
+  max_amp <<- max(step17_DA_df$X..Plot.0.1)
+  
+  vals_lower_than_320s <- subset(step17_DA_df, step17_DA_df[, "X..Plot.0"] < 320)
+  min_amp <<- min(vals_lower_than_320s$X..Plot.0.1)
+  
+  search_column <- "X..Plot.0"
+  search_value <- 250
+  
+  # Subset rows where search_column matches search_value
+  result <- subset(step17_DA_df, step17_DA_df[, search_column] == search_value)
+  average250 <- mean(result$X..Plot.0.1)
+  b_wave_amp <<- max_amp + (abs(min_amp)) 
+  
+  if (average250 >= 0) {
+    a_wave_amp <<- (average250 + abs(min_amp))
+  } else {
+    a_wave_amp <<- (abs(min_amp) - abs(average250))
+  }
+  search_column_imptime <- "X..Plot.0.1"
+  search_value_imptime_b <- max_amp
+  
+  # Subset rows where search_column matches search_value
+  result_imptime_b <- subset(step17_DA_df, step17_DA_df[, search_column_imptime] == search_value_imptime_b)
+  b_imptime <<- (mean(result_imptime_b$X..Plot.0)) - 250
+  
+  ###A wave implicit time
+  
+  #search_column_imptime <- "X..Plot.0.1"
+  search_value_imptime_a <- min_amp
+  
+  # Subset rows where search_column matches search_value
+  result_imptime_a <- subset(step17_DA_df, step17_DA_df[, search_column_imptime] == search_value_imptime_a)
+  a_imptime <<- (mean(result_imptime_a$X..Plot.0)) - 250
+}
+
+```
+
+```{r}
+x <- 0
+folder_path <- "C:/Users/fsheini/OneDrive - UAB - The University of Alabama at Birmingham/Desktop/ERG_Data/Mouse_1_053024"
+for (file in list.files(folder_path, pattern = "*.csv", full.names = TRUE)) {
+  # Read the current CSV file
+  data <- read.csv(file)
+  
+  # Apply your function on the data frame
+  if (x <= 5) {
+  DA_1to9_func(data)
+  } else {
+    DA_13to24_func(data)
+  }
+  final_results <- rbind(final_results, list(x, b_wave_amp, b_imptime,a_wave_amp,a_imptime))
+  x <- x+1
+}
+
+#Export final dataset to csv that can be opened in Excel
+write.csv(final_results, "C:/Users/fsheini/OneDrive - UAB - The University of Alabama at Birmingham/Desktop/ERG_R_Output/Mouse1_053024.csv", row.names=FALSE)
+
+#Run this to empty dataframe before next run
+final_results <- data.frame(step=c("step_0"),b_waveAmp=c(0),b_imp=c(0),a_waveAmp=c(0),a_imp=c(0))
+```
