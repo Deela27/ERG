@@ -1,3 +1,5 @@
+These are R markdown files
+
 # ERG (this readme is for the ERG-complete file)
 # Always remember to set x back to 0 after every run because the function it runs on the dataset depends on it.
 # Steps before you run the function:
